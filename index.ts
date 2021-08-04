@@ -1,25 +1,29 @@
 import fs from 'fs';
+import { optimize } from 'svgo';
 
 const CURR_DIR = process.cwd();
 
 export async function convertSVGToSvelte() {
   // Get all svg's in current directory
+  let svgs: Array<string> = [];
   try {
-    const svgs = await getSVGsInDir();
+    svgs = await getSVGsInDir();
     console.log(svgs);
   } catch (error) {
     console.log(error);
   }
 
-  // Iterate over them
-  //   Optimize with svgo
+  svgs.forEach(async (svg) => {
+    console.log(await optimiseSvg(svg));
+  });
+
   //   Replace svg width/height with variable
   //   Pull out path tags
   //   Replace fill with variable
   //   Add class with {$$props.class}
 }
 
-function getSVGsInDir() {
+function getSVGsInDir(): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     let svgList: Array<string> = [];
     fs.readdir(CURR_DIR, (err, files) => {
@@ -34,6 +38,15 @@ function getSVGsInDir() {
       } else {
         reject("No SVG's in current directory");
       }
+    });
+  });
+}
+
+function optimiseSvg(svgPath: string) {
+  return new Promise(async (resolve, reject) => {
+    await fs.readFile(svgPath, 'utf-8', (err, data) => {
+      const optimisedSvg = optimize(data);
+      resolve(optimisedSvg.data);
     });
   });
 }
