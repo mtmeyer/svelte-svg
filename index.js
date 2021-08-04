@@ -2,10 +2,14 @@ import fs from 'fs';
 
 const CURR_DIR = process.cwd();
 
-export function convertSVGToSvelte() {
-  console.log('Guava');
+export async function convertSVGToSvelte() {
   // Get all svg's in current directory
-  getSVGsInDir();
+  try {
+    const svgs = await getSVGsInDir();
+  } catch (error) {
+    console.log(error);
+  }
+
   // Iterate over them
   //   Optimize with svgo
   //   Replace svg width/height with variable
@@ -14,11 +18,22 @@ export function convertSVGToSvelte() {
   //   Add class with {$$props.class}
 }
 
-async function getSVGsInDir() {
-  console.log(CURR_DIR);
-  fs.readdir(CURR_DIR, (err, files) => {
-    files.forEach((file) => {
-      console.log(file);
+function getSVGsInDir() {
+  return new Promise((resolve, reject) => {
+    let svgList = [];
+    fs.readdir(CURR_DIR, (err, files) => {
+      files.forEach((file) => {
+        const extension = file.substring(file.lastIndexOf('.') + 1, file.length);
+        if (extension === 'svg') {
+          svgList.push(file);
+        }
+      });
+      if (svgList.length > 0) {
+        console.log(svgList);
+        resolve(svgList);
+      } else {
+        reject("No SVG's in current directory");
+      }
     });
   });
 }
