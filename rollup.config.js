@@ -7,7 +7,7 @@ import autoExternal from 'rollup-plugin-auto-external';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-  input: 'index.js',
+  input: 'index.ts',
   output: {
     name: 'bundle',
     file: 'lib/bundle.js',

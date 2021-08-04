@@ -6,6 +6,7 @@ export async function convertSVGToSvelte() {
   // Get all svg's in current directory
   try {
     const svgs = await getSVGsInDir();
+    console.log(svgs);
   } catch (error) {
     console.log(error);
   }
@@ -20,7 +21,7 @@ export async function convertSVGToSvelte() {
 
 function getSVGsInDir() {
   return new Promise((resolve, reject) => {
-    let svgList = [];
+    let svgList: Array<string> = [];
     fs.readdir(CURR_DIR, (err, files) => {
       files.forEach((file) => {
         const extension = file.substring(file.lastIndexOf('.') + 1, file.length);
@@ -29,7 +30,6 @@ function getSVGsInDir() {
         }
       });
       if (svgList.length > 0) {
-        console.log(svgList);
         resolve(svgList);
       } else {
         reject("No SVG's in current directory");
