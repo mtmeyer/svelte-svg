@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "svgs": "node --inspect ./lib/bundle.js"
+    "svgs": "node ./lib/bundle.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,7 @@
     "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.4",
     "@types/jsdom": "^16.2.13",
+    "@types/prettier": "^2.3.2",
     "@types/svgo": "^2.3.1",
     "arg": "^5.0.0",
     "chalk": "^4.1.2",
@@ -27,7 +28,8 @@
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
-    "jsdom": "^16.7.0",
-    "svgo": "^2.3.1"
+    "prettier": "^2.3.2",
+    "svgo": "^2.3.1",
+    "template-file": "^5.1.0"
   }
 }

@@ -1,6 +1,9 @@
 import fs from 'fs';
+import path from 'path';
 import { optimize } from 'svgo';
 import cheerio from 'cheerio';
+import { renderFile } from 'template-file';
+import prettier from 'prettier';
 
 const CURR_DIR = process.cwd();
 
@@ -9,16 +12,22 @@ export async function convertSVGToSvelte() {
   let svgs: Array<string> = [];
   try {
     svgs = await getSVGsInDir();
-    console.log(svgs);
   } catch (error) {
     console.log(error);
   }
 
-  svgs.forEach(async (svg) => {
-    let optimisedSVG: string = await optimiseSvg(svg);
-    let modifiedSVG = modifySVG(optimisedSVG);
-    console.log(modifiedSVG);
-  });
+  if (svgs.length > 0) {
+    await fs.mkdir(path.join(CURR_DIR, 'output'), (err) => {
+      if (err) console.error(err);
+    });
+
+    svgs.forEach(async (svg) => {
+      let optimisedSVG: string = await optimiseSvg(svg);
+      let modifiedSVG = modifySVG(optimisedSVG);
+      const fileName = svg.replace('.svg', '.svelte');
+      generateSvelteComponent(modifiedSVG.modifiedSVG, fileName);
+    });
+  }
 }
 
 function getSVGsInDir(): Promise<Array<string>> {
@@ -50,10 +59,10 @@ function optimiseSvg(svgPath: string): Promise<string> {
 }
 
 const SVG_REPLACEMENTS = [
-  { old: 'width="{width}"', new: 'width={width}' },
-  { old: 'height="{height}"', new: 'height={height}' },
-  { old: 'class="{$$props.class}"', new: 'class={$$props.class}' },
-  { old: 'fill="{fill}"', new: 'fill={fill}' },
+  // { old: 'width="{width}"', new: 'width={width}' },
+  // { old: 'height="{height}"', new: 'height={height}' },
+  // { old: 'class="{$$props.class}"', new: 'class={$$props.class}' },
+  // { old: 'fill="{fill}"', new: 'fill={fill}' },
   { old: '<html>', new: '' },
   { old: '</html>', new: '' },
   { old: '<head></head>', new: '' },
@@ -95,10 +104,16 @@ function modifySVG(optimisedSVG: string): ModifiedSVGType {
       path.attribs.fill = '{fill}';
     });
 
-  let editedHTML = $.html();
-  editedHTML = replaceStringElements(editedHTML, SVG_REPLACEMENTS);
+  const editedHTML = replaceStringElements($.html(), SVG_REPLACEMENTS);
 
-  return { currentParams: currentParams, modifiedSVG: editedHTML };
+  const prettierOptions = {
+    singleQuote: true,
+    parser: 'html'
+  };
+
+  const formattedHTML = prettier.format(editedHTML, prettierOptions);
+
+  return { currentParams: currentParams, modifiedSVG: formattedHTML };
 }
 
 type ReplacementType = {
@@ -109,13 +124,19 @@ type ReplacementType = {
 function replaceStringElements(string: string, replacements: Array<ReplacementType>): string {
   let tmpString = string;
   replacements.forEach((item: ReplacementType) => {
-    tmpString = tmpString.replace(item.old, item.new);
+    tmpString = tmpString.replace(new RegExp(item.old, 'g'), item.new);
   });
   return tmpString;
 }
 
-function generateSvelteComponent(svgString: string) {
+async function generateSvelteComponent(svgString: string, fileName: string) {
   // Take svg and inject into Svelte component
+  renderFile('./iconTemplate.svelte', { svgFile: svgString }).then((component) => {
+    fs.writeFile(path.join(CURR_DIR, 'output', fileName), component, (err) => {
+      if (err) throw err;
+      console.log('The file has been saved!');
+    });
+  });
 }
 
 convertSVGToSvelte();
