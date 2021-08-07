@@ -1,6 +1,6 @@
 {
   "name": "svg-svelte",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A simple CLI tool to generate Svelte components from SVG files",
   "main": "index.js",
   "scripts": {
