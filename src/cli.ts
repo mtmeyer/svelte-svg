@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-
 import { Data, renderFile } from 'template-file';
+import chalk from 'chalk';
 
 import { optimiseSvg } from './components/optimiseSVG';
 import { modifySVG } from './components/modifySVG';
@@ -10,24 +10,39 @@ import { ModifiedSVGType } from './typings/SVGTypes';
 const CURR_DIR = process.cwd();
 
 export async function convertSVGToSvelte() {
+  // Get svg's in current directory
   let svgs: Array<string> = [];
   try {
     svgs = await getSVGsInDir();
   } catch (error) {
-    console.log(error);
+    console.log(chalk.magenta(`--- No SVG's in the current directory ---`));
   }
 
   if (svgs.length > 0) {
-    await fs.mkdir(path.join(CURR_DIR, 'output'), (err) => {
-      if (err) console.error(err);
+    const outputDir = path.join(CURR_DIR, 'output');
+
+    // Check if output directory already exists
+    let doesDirAlreadyExist = false;
+    await fs.readdir(outputDir, (err, dir) => {
+      if (dir) doesDirAlreadyExist = true;
     });
 
+    // If no output directory exists, create one
+    if (!doesDirAlreadyExist) {
+      await fs.mkdir(outputDir, (err) => {
+        if (err) throw err;
+      });
+    }
+
+    // Optimise and modify svg and inject into Svelte component template
     svgs.forEach(async (svg) => {
       let optimisedSVG: string = await optimiseSvg(svg);
       let modifiedSVG = modifySVG(optimisedSVG);
       const fileName = svg.replace('.svg', '.svelte');
       generateSvelteComponent(modifiedSVG, fileName);
     });
+
+    console.log(chalk.green(`Successfully created`, chalk.bold(svgs.length), `Svelte components`));
   }
 }
 
@@ -35,6 +50,7 @@ function getSVGsInDir(): Promise<Array<string>> {
   return new Promise((resolve, reject) => {
     let svgList: Array<string> = [];
     fs.readdir(CURR_DIR, (err, files) => {
+      // Check if files are svg's and add to array if true
       files.forEach((file) => {
         const extension = file.substring(file.lastIndexOf('.') + 1, file.length);
         if (extension === 'svg') {
@@ -60,7 +76,6 @@ async function generateSvelteComponent(modifiedSVG: ModifiedSVGType, fileName: s
   renderFile(template, componentData as Data).then((component) => {
     fs.writeFile(path.join(CURR_DIR, 'output', fileName), component, (err) => {
       if (err) throw err;
-      console.log('The file has been saved!');
     });
   });
 }
