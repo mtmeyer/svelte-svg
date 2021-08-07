@@ -16,6 +16,14 @@
     "svelte",
     "svg"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mtmeyer/svg-svelte.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mtmeyer/svg-svelte/issues"
+  },
+  "homepage": "https://github.com/mtmeyer/svg-svelte#readme",
   "author": "Michael Meyer",
   "license": "MIT",
   "devDependencies": {
